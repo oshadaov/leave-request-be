@@ -90,6 +90,7 @@ public class UserServiceImpl implements UserService {
         return new LoginResponseDTO(token, user.getRole().name(), user.getEmail(), user.getUsername(),user.getId());
     }
 
+    //used to get http-request
     @Autowired
     private HttpServletRequest request;
 
