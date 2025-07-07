@@ -7,6 +7,7 @@ import com.leavedata.leavedata.dto.response.LoggedInUserIdDTO;
 import com.leavedata.leavedata.dto.response.LoginResponseDTO;
 import com.leavedata.leavedata.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,21 +24,21 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<String> createUser(@RequestBody CreateUserDTO dto){
-      return   userService.createUser(dto);
-    }
 
+        return userService.createUser(dto);
+    }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO loginRequestDTO) {
-        LoginResponseDTO response = userService.login(loginRequestDTO);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequestDTO) {
+        return userService.login(loginRequestDTO);
     }
+
 
 
     @GetMapping("/loggedInUser")
     public ResponseEntity<LoggedInUserIdDTO> getLoggedInUser(){
         LoggedInUserIdDTO response= userService.getLoggedInUser();
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(response,HttpStatus.OK);
     }
 }
 

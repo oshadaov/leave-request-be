@@ -53,8 +53,14 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
 
     @Override
     public LeaveRequest create(LeaveRequestDto dto, MultipartFile file) {
-        Employee employee = employeeRepo.findById(dto.getEmployeeId())
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
+
+        //set the logged in UserId
+        Long userId = userService.getLoggedInUser().getUserId();
+
+        Employee employee = employeeRepo.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Employee not found for user ID: " + userId));
+
+
 
         LeaveType leaveType = leaveTypeRepo.findById(dto.getLeaveTypeId())
                 .orElseThrow(() -> new RuntimeException("LeaveType not found"));
@@ -101,12 +107,19 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
 
         LeaveRequest existing = leaveRequestRepo.findById(id).orElseThrow(() -> new RuntimeException("Leave Request not found with id: " + id));
 
+        //set the logged in UserId
+        Long userId = userService.getLoggedInUser().getUserId();
+
+        Employee employee = employeeRepo.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Employee not found for user ID: " + userId));
+
+
 
         LeaveType leaveType = leaveTypeRepo.findById(dto.getLeaveTypeId())
                 .orElseThrow(() -> new RuntimeException("LeaveType not found"));
 
+        existing.setEmployee(employee);
         existing.setLeaveType(leaveType);
-
         existing.setLeaveStartDate(dto.getLeaveStartDate());
         existing.setLeavePeriod(dto.getLeavePeriod());
         existing.setHalfDayInfo(dto.getHalfDayInfo());
@@ -124,6 +137,8 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
 
     @Override
     public LeaveRequest withdrawRequest(Long id ) {
+
+
         LeaveRequest existingRequest = leaveRequestRepo.findById(id).orElseThrow(() -> new RuntimeException("Leave Request not found with id: " + id));
 
         existingRequest.setStatus("Cancel");
@@ -138,8 +153,9 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
 //get list of loggedIn users
     @Override
     public List<LeaveRequest> getRequestsByLoggedInUser() {
-        Long userId = userService.getLoggedInUser().getUserId();
 
+
+        Long userId = userService.getLoggedInUser().getUserId();
 
         Employee employee = employeeRepo.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Employee not found for user ID: " + userId));

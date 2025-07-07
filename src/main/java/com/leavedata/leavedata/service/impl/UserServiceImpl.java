@@ -70,25 +70,50 @@ public class UserServiceImpl implements UserService {
 
 
 
-
     @Override
-    public LoginResponseDTO login(LoginRequestDTO loginRequestDTO) {
-        Optional<User> exisitingUser = userRepository.findByEmail(loginRequestDTO.getEmail());
+    public ResponseEntity<?> login(LoginRequestDTO loginRequestDTO) {
+        try {
+            Optional<User> existingUser = userRepository.findByEmail(loginRequestDTO.getEmail());
 
-        if (exisitingUser.isEmpty()) {
-            throw new RuntimeException("Invalid email or password");
+            if (existingUser.isEmpty()) {
+                return ResponseEntity
+                        .status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid email or password");
+            }
+
+            User user = existingUser.get();
+
+            if (!passwordEncoder.matches(loginRequestDTO.getPassword(), user.getPassword())) {
+                return ResponseEntity
+                        .status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid email or password");
+            }
+
+            String token = jwtUtil.generateToken(
+                    user.getEmail(),
+                    user.getRole().name(),
+                    user.getId(),
+                    user.getUsername()
+            );
+
+            LoginResponseDTO responseDTO = new LoginResponseDTO(
+                    token,
+                    user.getRole().name(),
+                    user.getEmail(),
+                    user.getUsername(),
+                    user.getId()
+            );
+
+            return ResponseEntity.ok(responseDTO);
+
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Something went wrong: " + e.getMessage());
         }
-
-        User user = exisitingUser.get();
-
-        if (!passwordEncoder.matches(loginRequestDTO.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
-        }
-
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getId(), user.getUsername());
-
-        return new LoginResponseDTO(token, user.getRole().name(), user.getEmail(), user.getUsername(),user.getId());
     }
+
+
 
     //used to get http-request
     @Autowired

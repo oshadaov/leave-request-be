@@ -6,6 +6,7 @@ import java.time.LocalDate;
 
 @Data
 public class LeaveRequestUpdateDto {
+    private int employeeId;
     private int leaveTypeId;
     private LocalDate leaveStartDate;
     private String leavePeriod;

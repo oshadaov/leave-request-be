@@ -30,7 +30,8 @@ public class LeaveRequestController {
 
     @GetMapping
     public ResponseEntity<List<LeaveRequest>> getAll() {
-        return new ResponseEntity<>(leaveRequestService.getAll(), HttpStatus.ACCEPTED);
+        List<LeaveRequest> allRequests = leaveRequestService.getAll();
+        return new ResponseEntity<>(allRequests, HttpStatus.ACCEPTED);
     }
 
     @GetMapping("/{id}")
@@ -46,19 +47,28 @@ public class LeaveRequestController {
     public ResponseEntity<LeaveRequest> createLeaveRequest(
             @RequestPart("data") LeaveRequestDto dto,
             @RequestPart("supportedDocument") MultipartFile file) {
-        return new ResponseEntity<>(leaveRequestService.create(dto, file), HttpStatus.CREATED);
+        LeaveRequest newRequest = leaveRequestService.create(dto, file);
+        return new ResponseEntity<>(newRequest, HttpStatus.CREATED);
     }
 
 
 
     @PutMapping("update/{id}")
-    public ResponseEntity<LeaveRequest> updateLeaveRequest(@PathVariable Long id, @RequestBody LeaveRequestUpdateDto dto){
-        return new ResponseEntity<>(leaveRequestService.updateRequest(id,dto),HttpStatus.OK);
+    public ResponseEntity<LeaveRequest> updateLeaveRequest(
+            @PathVariable Long id,
+            @RequestBody LeaveRequestUpdateDto dto){
+
+        LeaveRequest updatedRequest = leaveRequestService.updateRequest(id,dto);
+
+        return new ResponseEntity<>(updatedRequest,HttpStatus.OK);
     }
 
     @PutMapping("withdraw/{id}")
     public ResponseEntity<LeaveRequest> withdrawLeaveRequest(@PathVariable  Long id) {
-        return new ResponseEntity<>(leaveRequestService.withdrawRequest(id),HttpStatus.OK);
+
+        LeaveRequest withdrewRequest = leaveRequestService.withdrawRequest(id);
+
+        return new ResponseEntity<>(withdrewRequest,HttpStatus.OK);
     }
 
 
@@ -66,7 +76,7 @@ public class LeaveRequestController {
     @GetMapping("/my-requests")
     public ResponseEntity<List<LeaveRequest>> getMyRequests() {
         List<LeaveRequest> requests = leaveRequestService.getRequestsByLoggedInUser();
-        return ResponseEntity.ok(requests);
+        return new ResponseEntity<>(requests,HttpStatus.ACCEPTED);
     }
 
 }
