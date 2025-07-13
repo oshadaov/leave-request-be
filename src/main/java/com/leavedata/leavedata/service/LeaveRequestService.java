@@ -26,6 +26,9 @@ public interface LeaveRequestService {
 
   List<LeaveRequest> getRequestsByLoggedInUser();
 
+    LeaveRequest approveRequest(Long id);
+
+    LeaveRequest rejectRequest(Long id);
 }
 
 

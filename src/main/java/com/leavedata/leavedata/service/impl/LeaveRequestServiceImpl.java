@@ -5,9 +5,11 @@ import com.leavedata.leavedata.dto.LeaveRequestUpdateDto;
 import com.leavedata.leavedata.model.Employee;
 import com.leavedata.leavedata.model.LeaveRequest;
 import com.leavedata.leavedata.model.LeaveType;
+import com.leavedata.leavedata.model.User;
 import com.leavedata.leavedata.repository.EmployeeRepository;
 import com.leavedata.leavedata.repository.LeaveRequestRepository;
 import com.leavedata.leavedata.repository.LeaveTypeRepository;
+import com.leavedata.leavedata.repository.UserRepository;
 import com.leavedata.leavedata.service.LeaveRequestService;
 import com.leavedata.leavedata.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,9 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
 
     @Autowired
     private LeaveTypeRepository leaveTypeRepo;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Value("${app.upload.dir:uploads/}")
     private String uploadDir;
@@ -141,9 +146,17 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
 
         LeaveRequest existingRequest = leaveRequestRepo.findById(id).orElseThrow(() -> new RuntimeException("Leave Request not found with id: " + id));
 
+
+        //set the logged in UserId
+        Long userId = userService.getLoggedInUser().getUserId();
+
+        Employee employee = employeeRepo.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Employee not found for user ID: " + userId));
+
+
         existingRequest.setStatus("Cancel");
         existingRequest.setUpdatedAt(LocalDateTime.now());
-        existingRequest.setUpdatedBy(existingRequest.getEmployee().getName());
+        existingRequest.setUpdatedBy(employee.getName());
 
         return leaveRequestRepo.save(existingRequest);
     }
@@ -161,6 +174,48 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
                 .orElseThrow(() -> new RuntimeException("Employee not found for user ID: " + userId));
 
         return leaveRequestRepo.findAllByEmployeeId(employee.getId());
+    }
+
+
+    //approve request
+    @Override
+    public LeaveRequest approveRequest(Long id) {
+        LeaveRequest existingRequest = leaveRequestRepo.findById(id).orElseThrow(() -> new RuntimeException("Leave Request not found with id: " + id));
+
+
+        // Get logged-in user ID
+        Long userId = userService.getLoggedInUser().getUserId();
+
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
+
+        existingRequest.setStatus("Approved");
+        existingRequest.setUpdatedAt(LocalDateTime.now());
+        existingRequest.setUpdatedBy(user.getUsername());
+
+        return leaveRequestRepo.save(existingRequest);
+    }
+
+    @Override
+    public LeaveRequest rejectRequest(Long id) {
+        LeaveRequest existingRequest = leaveRequestRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Leave Request not found with id: " + id));
+
+        // Get logged-in user ID
+        Long userId = userService.getLoggedInUser().getUserId();
+
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
+        // Update leave request details
+        existingRequest.setStatus("Rejected");
+        existingRequest.setUpdatedAt(LocalDateTime.now());
+        existingRequest.setUpdatedBy(user.getUsername());
+
+        return leaveRequestRepo.save(existingRequest);
     }
 
 

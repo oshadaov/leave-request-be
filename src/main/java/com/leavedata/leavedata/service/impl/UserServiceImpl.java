@@ -11,6 +11,7 @@ import com.leavedata.leavedata.repository.EmployeeRepository;
 import com.leavedata.leavedata.repository.UserRepository;
 import com.leavedata.leavedata.service.UserService;
 import com.leavedata.leavedata.utils.JwtUtil;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -119,6 +120,8 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private HttpServletRequest request;
 
+
+    //utilty-common method no map
     @Override
     public LoggedInUserIdDTO getLoggedInUser() {
         String authHeader = request.getHeader("Authorization");
@@ -132,6 +135,8 @@ public class UserServiceImpl implements UserService {
 
         return new LoggedInUserIdDTO(userId);
     }
+
+
 
 
 

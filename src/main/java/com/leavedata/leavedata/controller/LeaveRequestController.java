@@ -7,6 +7,7 @@ import com.leavedata.leavedata.service.LeaveRequestService;
 import com.leavedata.leavedata.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,13 +28,13 @@ public class LeaveRequestController {
         this.leaveRequestService = leaveRequestService;
         this.userService = userService;
     }
-
-    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @GetMapping("/allusers")
     public ResponseEntity<List<LeaveRequest>> getAll() {
         List<LeaveRequest> allRequests = leaveRequestService.getAll();
         return new ResponseEntity<>(allRequests, HttpStatus.ACCEPTED);
     }
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'REG_USER')")
     @GetMapping("/{id}")
     public LeaveRequest getById(@PathVariable Long id) {
 
@@ -43,7 +44,7 @@ public class LeaveRequestController {
 
 
 
-    @PostMapping(consumes = "multipart/form-data")
+    @PostMapping("/create")
     public ResponseEntity<LeaveRequest> createLeaveRequest(
             @RequestPart("data") LeaveRequestDto dto,
             @RequestPart("supportedDocument") MultipartFile file) {
@@ -52,7 +53,7 @@ public class LeaveRequestController {
     }
 
 
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'REG_USER')")
     @PutMapping("update/{id}")
     public ResponseEntity<LeaveRequest> updateLeaveRequest(
             @PathVariable Long id,
@@ -62,7 +63,7 @@ public class LeaveRequestController {
 
         return new ResponseEntity<>(updatedRequest,HttpStatus.OK);
     }
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'REG_USER')")
     @PutMapping("withdraw/{id}")
     public ResponseEntity<LeaveRequest> withdrawLeaveRequest(@PathVariable  Long id) {
 
@@ -72,7 +73,32 @@ public class LeaveRequestController {
     }
 
 
+
+    //approve request
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PutMapping("approve/{id}")
+    public ResponseEntity<LeaveRequest> approveLeaveRequest(@PathVariable  Long id) {
+
+        LeaveRequest approvedRequest = leaveRequestService.approveRequest(id);
+
+        return new ResponseEntity<>(approvedRequest,HttpStatus.OK);
+    }
+
+
+
+
+    //reject request
+    @PutMapping("reject/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<LeaveRequest>  rejectLeaveRequest(@PathVariable Long id){
+        LeaveRequest rejectedRequest = leaveRequestService.rejectRequest(id);
+
+        return new ResponseEntity<>(rejectedRequest,HttpStatus.OK);
+
+    }
+
 //API for get request list for loggedInUser
+@PreAuthorize("hasAnyRole('ADMIN', 'REG_USER')")
     @GetMapping("/my-requests")
     public ResponseEntity<List<LeaveRequest>> getMyRequests() {
         List<LeaveRequest> requests = leaveRequestService.getRequestsByLoggedInUser();
